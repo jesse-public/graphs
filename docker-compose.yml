@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    # ports:
+    #   - ${CLIENT_IP}:3000:3000
+    volumes:
+      - ./volumes/grafana:/var/lib/grafana
+
+  nginx:
+    image: lscr.io/linuxserver/nginx:latest
+    container_name: grafana-nginx
+    depends_on:
+      - grafana
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ./volumes/nginx/certs:/certs
+      - ./volumes/nginx/config:/config
+    ports:
+      - ${CLIENT_IP}:443:443
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    # ports:
+    #   - ${CLIENT_IP}:9090:9090
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    volumes:
+      - ./volumes/prometheus/config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./volumes/prometheus/prometheus:/prometheus
+    restart: unless-stopped
+
+  tide-water-level-exporter:
+    container_name: tide-water-level-exporter
+    build:
+      context: ./tide-water-level-exporter
+      dockerfile: Dockerfile
+    # ports:
+    #   - ${CLIENT_IP}:9785:9785
+    restart: unless-stopped
