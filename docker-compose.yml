@@ -17,6 +17,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ}
+    user: '1000'
     volumes:
       - ./volumes/nginx/certs:/certs
       - ./volumes/nginx/config:/config
